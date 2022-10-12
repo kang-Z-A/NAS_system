@@ -27,7 +27,6 @@
 </template>
 
 <style scoped lang="scss">
-@import '../assets/font/font.css';
 * {
     margin: 0;
     padding: 0;

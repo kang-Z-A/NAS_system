@@ -1,13 +1,92 @@
 <script setup lang='ts'>
-
+import SvgIcon from '@/components/SvgIcon.vue'
 </script>
 
 <template>
-    <div>
-
+    <div class="screen">
+        <div class="top">
+            <div class="icon">
+                <SvgIcon name="logo" ></SvgIcon>
+            </div>
+            <span class="logo">NAS系统</span>
+            <div class="user">
+                <img src="@/assets/img/head_portrait.jpg">
+                <div class="mail">
+                    <span>三又二一</span>
+                </div>
+            </div>
+        </div>
+        <div class="mid">
+            <div class="navlist"></div>
+            <div class="show"></div>
+        </div>
     </div>
 </template>
 
-<style scoped>
-
+<style scoped lang="scss">
+*{
+    margin: 0;
+    padding: 0; 
+}
+.screen{
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    width: 100%;
+    & .top{
+        width: 100%;
+        height: 8vh;
+        background-color: white;
+        box-shadow: 0 1px 2px 1px rgb(216, 223, 228);
+        z-index: 1;
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        & .icon{
+            margin-left: -80px;
+        }
+        & .logo{
+            font-family: 'fontType';
+            font-size: 22px;
+            margin-left: -100px;
+            user-select: none;
+        }
+        & .user{
+            position: relative;
+            left: 72vw;
+            height: 80%;
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            align-items: center;
+            & img{
+                height: 100%;
+                object-fit: contain;
+                border-radius: 100%;
+            }
+            & .mail{ 
+                & span{
+                    padding-left: 20px;
+                    font-family: 'fontType';
+                    font-size: 15px;
+                    user-select: none;
+                }
+            }
+        }
+    }
+    & .mid{
+        height: 100%;
+        display: flex;
+        flex-direction: row;
+        & .navlist{
+            width: 20vw;
+            background-color: rgb(52, 58, 64);
+            z-index: 1;
+        }
+        & .show{
+            width: 100%;
+            background-color: rgb(241, 242, 243);
+        }
+    }
+}
 </style>
