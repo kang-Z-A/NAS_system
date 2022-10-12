@@ -17,6 +17,11 @@
                     <input type="text" class="passwd">
                 </div>
             </div>
+            <div class="btn">确认</div>
+            <div class="bottom">
+                <label class="register">注册</label>
+                <label class="forget">忘记密码</label>
+            </div>
         </div>
     </div>
 </template>
@@ -49,17 +54,19 @@ img{
     transform: translate(-100px, 0);
     display: flex;
     flex-direction: column;
-    justify-content: center;
+    justify-content: space-around;
     align-items: center;
     height: 380px;
     width: 400px;
     background-color: rgb(200, 224, 224);
     backdrop-filter: blur(1px);
     border-radius: 25px;
+    user-select: none;
     .title{
-        transform:translate(0, -30px);
         font-family: 'fontType';
         font-size: 35px;
+        margin-bottom: 10px;
+        margin-top: 30px;
     }
     .input-row{
         display: flex;
@@ -85,6 +92,37 @@ img{
                     border: 1px solid rgba(255, 255, 255, 0.8)
                 }
             }
+    }
+    .btn{
+        background-color: rgb(0, 207, 207);
+        width: 80px;
+        height: 35px;
+        transform: translate(0, -10%);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        border-radius: 5px;
+        outline: none;
+        padding: 0 5px;
+        border:1px;
+        font-size: 15px;
+        font-family: 'fontType';
+        transition: 0.2s;
+        &:hover{
+            background-color: rgb(0, 182, 182);
+        }
+    }
+    .bottom{
+        width: 100%;
+        display: flex;
+        flex-direction: row;
+        justify-content: space-around;
+        align-items: center;
+        color: rgb(165, 164, 164);
+        & label:hover{
+            cursor: pointer;
+            text-decoration: underline;
+        }
     }
 }
 </style>
