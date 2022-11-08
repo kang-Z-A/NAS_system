@@ -1,4 +1,33 @@
 <script setup lang='ts'>
+import { ref } from 'vue';
+import {login} from '@/apis/api'
+import { useRouter } from 'vue-router';
+import {setToken} from '@/utils/tokens'
+
+const name = ref('')
+const passwd = ref('')
+
+const router = useRouter()
+
+//登录
+const Login = ref()
+Login.value = () => { 
+    login(name.value,passwd.value).then((res) => {
+        if(res.data.message === '登录成功'){
+            let token = res.data.token;
+            window.localStorage.setItem('X-token',token)
+            router.push({ 
+                name:'menu',
+                query:{
+                    name:name.value,
+                }
+            })
+        }
+        else window.alert('登录失败')
+    },err => {
+        console.log(err)
+    })
+}
 
 </script>
 
@@ -10,17 +39,17 @@
             <div class="input-box">
                 <div class="input-row">
                     <label>用户名：</label>
-                    <input type="text" class="username">
+                    <input type="text" class="username" v-model="name" autofocus>
                 </div>
                 <div class="input-row">
                     <label>密码：</label>
-                    <input type="text" class="passwd">
+                    <input type="password" class="passwd" v-model="passwd" @keyup.enter="Login">
                 </div>
             </div>
-            <div class="btn">确认</div>
+            <div class="btn" @click="Login">确认</div>
             <div class="bottom">
                 <label class="register">注册</label>
-                <label class="forget">忘记密码</label>
+                <!-- <label class="forget">忘记密码</label> -->
             </div>
         </div>
     </div>

@@ -1,19 +1,19 @@
 <script setup lang='ts'>
-import index from '@/components/index.vue';
-import login from '@/pages/login.vue'
-import show from '@/pages/menu.vue'
+
 </script>
 
 <template>
-  <!-- <index></index> -->
-  <!-- <login></login> -->
-  <show></show>
+  <div class="main">
+    <router-view></router-view>
+  </div>
 </template>
 
 <style lang="scss">
 @import './assets/font/font.css';
-body{
+.main{
   margin: 0;
   padding: 0;
+  width: 100vw;
+  height: 100vh;
 }
 </style>
