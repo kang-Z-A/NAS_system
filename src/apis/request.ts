@@ -3,10 +3,6 @@ import axios from 'axios'
 const request = axios.create({
     baseURL: 'http://127.0.0.1:3000', 
     timeout: 5000 ,
-    headers:{
-        // 'Content-type':'application/json',
-        'X-token':window.localStorage.getItem('X-token'),
-    },
     withCredentials: true,
 })
 
@@ -16,7 +12,7 @@ request.interceptors.request.use(config => {
 },(error) => { 
     return Promise.reject(error)
 })
-  
+
 //响应拦截器，如果data里的code为401，表示token过期
 request.interceptors.response.use((response => {
     return response
@@ -24,4 +20,5 @@ request.interceptors.response.use((response => {
     return Promise.reject(error) 
 })
 
-export default request
+
+export default  request

@@ -2,10 +2,11 @@
 import { getdata } from '@/apis/api'
 import { onMounted, reactive, ref } from 'vue';
 import { useRouter } from 'vue-router';
-import Top from '@/components/Top.vue'
-import DownUp from '@/components/DownUp.vue'
-import Mine from '@/components/Mine.vue'
-import Video from '@/components/Video.vue'
+import { defineAsyncComponent } from 'vue';
+const Top = defineAsyncComponent(() => import ('@/components/Top.vue'))
+const DownUp = defineAsyncComponent(() => import ('@/components/DownUp.vue'))
+const Mine = defineAsyncComponent(() => import ('@/components/Mine.vue'))
+const Video = defineAsyncComponent(() => import ('@/components/Video.vue'))
 
 const router = useRouter()
 
@@ -45,9 +46,10 @@ onSelect.value = (e: PointerEvent) => {
 
 onMounted(async () => {
     //请求数据
+    // console.log('修改后的token',window.localStorage.getItem('X-token'))
     await getdata().then(res => {
         if (res.data.code === 200) {
-            console.log(res.data)
+            // console.log(res.data)
             userinfo.name = res.data.userinfo.name
         } else {
             router.push({ name: 'login' })
@@ -62,7 +64,7 @@ onMounted(async () => {
 
 <template>
     <div class="screen">
-        <Top></Top>
+        <Top :name="userinfo.name"></Top>
         <div class="mid">
             <div class="navlist" @click="onSelect">
                 <div id="0" class="active">音视频播放</div>
@@ -70,7 +72,9 @@ onMounted(async () => {
                 <div id="2">我的</div>
             </div>
             <div class="show">
-                <component :is="selected === 0 ? Video : (selected === 1 ? DownUp : Mine)"></component>
+                <keep-alive>
+                    <component :is="selected === 0 ? Video : (selected === 1 ? DownUp : Mine)" :name="userinfo.name"></component>
+                </keep-alive>
             </div>
         </div>
     </div>
@@ -89,7 +93,7 @@ onMounted(async () => {
     width: 100%;
 
     & .mid {
-        height: 100%;
+        height: 92%;
         display: flex;
         flex-direction: row;
 

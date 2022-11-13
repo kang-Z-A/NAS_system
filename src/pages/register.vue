@@ -1,9 +1,10 @@
 <script setup lang='ts'>
 import SvgIcon from '@/components/SvgIcon.vue'
 import { ref } from 'vue';
+import { useRouter } from 'vue-router';
 import { register, name_check } from '../apis/api'
 
-
+const router = useRouter()
 const name = ref('')
 const password = ref('')
 const passwordAgain = ref('')
@@ -56,7 +57,10 @@ passwdAgain_check.value = () => {
 const registerUser = ref()
 registerUser.value = () => {
     register(name.value, password.value).then((response) => {
-        if(response.data === '注册成功') console.log('注册成功')
+        if(response.data === '注册成功')
+            router.push({ 
+                name:'login',
+            })
     })
 }
 

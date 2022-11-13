@@ -2,7 +2,6 @@
 import { ref } from 'vue';
 import {login} from '@/apis/api'
 import { useRouter } from 'vue-router';
-import {setToken} from '@/utils/tokens'
 
 const name = ref('')
 const passwd = ref('')
@@ -18,9 +17,6 @@ Login.value = () => {
             window.localStorage.setItem('X-token',token)
             router.push({ 
                 name:'menu',
-                query:{
-                    name:name.value,
-                }
             })
         }
         else window.alert('登录失败')
@@ -28,6 +24,11 @@ Login.value = () => {
         console.log(err)
     })
 }
+
+const toRegister = ref()
+toRegister.value = () => { 
+    router.push({name:'register'})
+ }
 
 </script>
 
@@ -48,7 +49,7 @@ Login.value = () => {
             </div>
             <div class="btn" @click="Login">确认</div>
             <div class="bottom">
-                <label class="register">注册</label>
+                <label class="register" @click="toRegister">注册</label>
                 <!-- <label class="forget">忘记密码</label> -->
             </div>
         </div>

@@ -1,5 +1,5 @@
 <script setup lang='ts'>
-
+const props = defineProps(['name'])
 </script>
 
 <template>
@@ -11,7 +11,7 @@
         <div class="user">
             <img src="@/assets/img/head_portrait.jpg">
             <div class="mail">
-                <span>三又二一</span>
+                <span>{{props.name}}</span>
             </div>
         </div>
     </div>
@@ -31,7 +31,7 @@
         display: flex;
         flex-direction: row;
         align-items: center;
-
+        user-select: none;
         & .icon {
             margin-left: -80px;
         }

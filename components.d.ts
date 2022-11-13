@@ -9,6 +9,7 @@ declare module '@vue/runtime-core' {
   export interface GlobalComponents {
     DownUp: typeof import('./src/components/DownUp.vue')['default']
     ElButton: typeof import('element-plus/es')['ElButton']
+    ElDialog: typeof import('element-plus/es')['ElDialog']
     ElUpload: typeof import('element-plus/es')['ElUpload']
     Mine: typeof import('./src/components/Mine.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
