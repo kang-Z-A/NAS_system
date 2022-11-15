@@ -47,7 +47,7 @@ const passwdAgain_check = ref()
 passwdAgain_check.value = () => {
     if (time) clearTimeout(time)
     time = setTimeout(() => {
-        console.log(1)
+        // console.log(1)
         if (passwordAgain.value !== password.value) passwdIsSame.value = false
         else passwdIsSame.value = true
     }, 500)

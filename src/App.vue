@@ -1,5 +1,10 @@
 <script setup lang='ts'>
 
+import { onMounted } from 'vue'
+ 
+onMounted(() => {
+  document.body.style.setProperty('--el-color-primary', '#979191');
+})
 </script>
 
 <template>

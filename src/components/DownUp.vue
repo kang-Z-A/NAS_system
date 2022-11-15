@@ -1,16 +1,30 @@
 <script setup lang='ts'>
-import { onMounted, onUpdated, ref } from 'vue';
+import { onMounted, Ref, ref, watch } from 'vue';
 import SvgIcon from '@/components/SvgIcon.vue'
-import { upload, getFileList, downLoadFile } from '@/apis/api'
-import { ElMessage } from 'element-plus'
+import { upload, getFileList, downLoadFile, removeFile, previewFile } from '@/apis/api'
+import { ElMessage, ElLoading } from 'element-plus'
 
+//遮罩层1，上传文件重名，是否替换
 const centerDialogVisible = ref(false)
+//遮罩层2，预览pdf和img
+const centerDialogVisible_2 = ref(false)
 
 const props = defineProps(['name'])
 
 
 const input_file = ref();
 const fileName = ref('')
+
+//按首字母排序插入文件
+const pushFile = (files: Ref<{ name: string, path: string, }[]>, obj: fileInfo) => {
+    if (files.value.length === 0) files.value.push(obj)
+    for (let t = 0; t < files.value.length; t++) {
+        if (files.value[t].name.charAt(0) > obj.name.charAt(0)) {
+            files.value.splice(t, 0, obj)
+            return
+        }
+    }
+}
 
 //点击上传按钮
 const clickUpLoad = ref()
@@ -24,7 +38,8 @@ clickUpLoad.value = () => {
         return
     }
     toUpload()
-    files.value.push({ 'name': input_file_name, 'path': `D:/userStorage/${props.name}/${input_file_name}` })
+    pushFile(files, { 'name': input_file_name, 'path': `D:/userStorage/${props.name}/${input_file_name}` })
+    // pushFile(files, { 'name': input_file_name, 'path': `D:/userStorage/${props.name}/${input_file_name}` })
 }
 
 //确认上传
@@ -33,7 +48,9 @@ const toUpload = () => {
     let formData = new FormData()
     formData.append('file', input_file.value.files[0])
     formData.append('name', props.name)
+    const loadingInstance = ElLoading.service({ target: '.file-show-list' })
     upload(formData).then(res => {
+        loadingInstance.close()
         if (res.data === '上传成功') {
             ElMessage({
                 message: '文件上传成功',
@@ -55,18 +72,18 @@ showFileName.value = () => {
     else showMes.value = false
 }
 
+//下载文件
 const downLoad = ref()
 downLoad.value = (e: PointerEvent) => {
     if (e) {
         const fileName = ((e.target as HTMLSpanElement).parentNode as HTMLLIElement).outerText.split('\n').shift()
         downLoadFile(props.name, fileName as string).then(res => {
             if (res.status === 200) {
-                var link = document.createElement('a');
+                let link = document.createElement('a');
                 link.href = window.URL.createObjectURL(res.data);
                 link.download = fileName as string;
                 link.click();
                 window.URL.revokeObjectURL(link.href)
-                document.body.removeChild(link)
                 ElMessage({
                     message: '文件开始下载',
                     type: 'success',
@@ -74,6 +91,32 @@ downLoad.value = (e: PointerEvent) => {
             }
             else {
                 ElMessage.error('请求下载失败')
+            }
+        })
+    }
+}
+
+//删除文件
+const remove = ref()
+remove.value = (e: PointerEvent) => {
+    if (e) {
+        const fileName = ((e.target as HTMLSpanElement).parentNode as HTMLLIElement).outerText.split('\n').shift()
+        const loadingInstance = ElLoading.service({ target: '.file-show-list' })
+        removeFile(props.name, fileName as string).then(res => {
+            loadingInstance.close()
+            if (res.data === '文件删除成功') {
+                let id
+                for (id = 0; id < files.value.length; id++) {
+                    if (files.value[id].name === fileName) break
+                }
+                files.value.splice(id, 1)
+                ElMessage({
+                    message: '文件删除成功',
+                    type: 'success',
+                })
+            }
+            else {
+                ElMessage.error('文件删除失败')
             }
         })
     }
@@ -98,9 +141,68 @@ onMounted(async () => {
     }).catch(err => console.log(err))
 })
 
-onUpdated(() => {
+watch(files.value, (files, prefiles) => {
+    previwFix()
+}, { deep: true })
 
-})
+//多媒体后缀
+const pdfFix = ['pdf']
+const imgFix = ['jpg', 'png']
+const previewFiles = ref([] as Array<string>)
+const previwFix = () => {
+    const sumFix = imgFix.concat(...pdfFix)
+    files.value.forEach((file) => {
+        const t = file.name.split('.').pop()
+        if (t && sumFix.includes(t)) previewFiles.value.push(file.name)
+    })
+}
+
+const showPdf = ref(false)
+const showImg = ref(false)
+// watch([showImg.value,showPdf.value], (value,oldvalue) => {
+//     if(value.includes(true))    centerDialogVisible_2.value = true
+// })
+const pdfUrl = ref('')
+const imgUrl = ref('')
+
+const toPreview = ref()
+toPreview.value = (e: PointerEvent) => {
+    const fileName = ((e.target as HTMLSpanElement).parentNode as HTMLLIElement).outerText.split('\n').shift() as string
+    // console.log(fileName)
+    previewFile(props.name, fileName).then(res => {
+        if (res.status === 200) {
+            const href = window.URL.createObjectURL(res.data);
+            const filetype = fileName.split('.').pop() as string
+            // console.log(filetype)
+            if (pdfFix.includes(filetype)) {
+                showPdf.value = true
+                pdfUrl.value = href
+                centerDialogVisible_2.value = true
+                // console.log('pdf')
+            } else if (imgFix.includes(filetype)) {
+                showImg.value = true
+                imgUrl.value = href
+                centerDialogVisible_2.value = true
+                // console.log('img')
+            } else {
+                ElMessage.error('当前文件暂不支持预览')
+            }
+        } else {
+            ElMessage.error('请求错误')
+        }
+    })
+}
+
+const closePreviewClick = ref()
+closePreviewClick.value = () => {
+    if (showPdf.value === true) {
+        showPdf.value = false
+        centerDialogVisible_2.value = false
+    } else if (showImg.value === true) {
+        showImg.value = false
+        centerDialogVisible_2.value = false
+    }
+}
 
 </script>
 
@@ -126,8 +228,10 @@ onUpdated(() => {
                         <svg class="file-icon">
                             <SvgIcon name="fileIcon"></SvgIcon>
                         </svg>
-                        <span>{{ item.name }}</span>
+                        <span class="filename" :title="item.name">{{ item.name }}</span>
+                        <span class="showonline" v-if="previewFiles.includes(item.name)" @click="toPreview">在线预览</span>
                         <span class="download" @click="downLoad">下载</span>
+                        <span class="remove" @click="remove">删除</span>
                     </li>
                 </ul>
             </div>
@@ -142,6 +246,15 @@ onUpdated(() => {
                         </el-button>
                     </span>
                 </template>
+            </el-dialog>
+            <el-dialog v-model="centerDialogVisible_2" show-close="true"
+                :before-close="closePreviewClick" width="1000px" align-center class="dialog2">
+                <div v-if="showPdf === true" style="justify-content: center; align-items: center">
+                    <iframe frameborder="0" :src="pdfUrl" width="100%" height="600px" />
+                </div>
+                <div v-else-if="showImg === true" class="dialog-body-content-base-style">
+                    <img :src="imgUrl" alt="picture" class="show-img-box">
+                </div>
             </el-dialog>
         </div>
     </div>
@@ -255,7 +368,7 @@ input {
     margin-top: 20px;
     background-color: rgba(248, 252, 255, 0.477);
     border-radius: 5px;
-    overflow-y: scroll;
+    overflow-y: auto;
 
     ul {
         margin: 10px;
@@ -264,7 +377,7 @@ input {
 
         li {
             padding: 5px;
-            height: 20px;
+            height: 22px;
             display: flex;
             position: relative;
             align-items: center;
@@ -278,11 +391,43 @@ input {
                 background-color: rgb(151, 145, 145);
             }
 
+            .filename {
+                display: inline-block;
+                overflow: hidden;
+                width: 500px;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+
+            .showonline {
+                position: absolute;
+                font-family: 'fontType';
+                font-size: smaller;
+                right: 130px;
+
+                &:hover {
+                    color: rgb(34, 34, 192);
+                    text-decoration: underline;
+                }
+            }
+
             .download {
                 position: absolute;
                 font-family: 'fontType';
                 font-size: smaller;
-                right: 50px;
+                right: 80px;
+
+                &:hover {
+                    color: rgb(34, 34, 192);
+                    text-decoration: underline;
+                }
+            }
+
+            .remove {
+                position: absolute;
+                font-family: 'fontType';
+                font-size: smaller;
+                right: 30px;
 
                 &:hover {
                     color: rgb(34, 34, 192);
@@ -291,6 +436,28 @@ input {
             }
         }
     }
+}
+
+.medio {
+    position: absolute;
+    display: flex;
+    width: auto;
+    height: auto;
+}
+
+.dialog-body-content-base-style{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 60vw;
+    height: 80vh;
+    // overflow: hidden;
+}
+.show-img-box{
+    // display: block;
+    max-width: 600px;
+    max-height: 600px;
+    object-fit: cover;
 }
 </style>
 

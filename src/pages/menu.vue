@@ -1,17 +1,18 @@
 <script setup lang='ts'>
 import { getdata } from '@/apis/api'
-import { onMounted, reactive, ref } from 'vue';
+import { onMounted, reactive, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { defineAsyncComponent } from 'vue';
-const Top = defineAsyncComponent(() => import ('@/components/Top.vue'))
-const DownUp = defineAsyncComponent(() => import ('@/components/DownUp.vue'))
-const Mine = defineAsyncComponent(() => import ('@/components/Mine.vue'))
-const Video = defineAsyncComponent(() => import ('@/components/Video.vue'))
+const Top = defineAsyncComponent(() => import('@/components/Top.vue'))
+const DownUp = defineAsyncComponent(() => import('@/components/DownUp.vue'))
+const Mine = defineAsyncComponent(() => import('@/components/Mine.vue'))
+const Video = defineAsyncComponent(() => import('@/components/Video.vue'))
 
 const router = useRouter()
 
 const userinfo = reactive({
-    name: ''
+    name: '',
+    headImg: ''
 })
 
 const selected = ref(0)
@@ -51,20 +52,39 @@ onMounted(async () => {
         if (res.data.code === 200) {
             // console.log(res.data)
             userinfo.name = res.data.userinfo.name
+            userinfo.headImg = res.data.userinfo.headImg
         } else {
             router.push({ name: 'login' })
         }
     })
-
-
-
 })
+
+const update = ref(false)
+const reqAgain = ref()
+reqAgain.value = (val: boolean) => {
+    if (val) update.value = true
+}
+
+watch(update, async (newvalue, oldvalue) => {
+    if (newvalue) {
+        await getdata().then(res => {
+            if (res.data.code === 200) {
+                // console.log(res.data)
+                userinfo.name = res.data.userinfo.name
+                userinfo.headImg = res.data.userinfo.headImg
+            } else {
+                router.push({ name: 'login' })
+            }
+        })
+        update.value = false
+    }
+},{immediate:true})
 
 </script>
 
 <template>
     <div class="screen">
-        <Top :name="userinfo.name"></Top>
+        <Top :name="userinfo.name" :headImg="userinfo.headImg"></Top>
         <div class="mid">
             <div class="navlist" @click="onSelect">
                 <div id="0" class="active">音视频播放</div>
@@ -72,9 +92,8 @@ onMounted(async () => {
                 <div id="2">我的</div>
             </div>
             <div class="show">
-                <keep-alive>
-                    <component :is="selected === 0 ? Video : (selected === 1 ? DownUp : Mine)" :name="userinfo.name"></component>
-                </keep-alive>
+                <component :is="selected === 0 ? Video : (selected === 1 ? DownUp : Mine)" :name="userinfo.name"
+                    :headImg="userinfo.headImg" @reqAgain="reqAgain"></component>
             </div>
         </div>
     </div>

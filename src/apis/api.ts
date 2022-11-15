@@ -1,5 +1,4 @@
 import request from "./request";
-import qs from 'qs'
 import axios from "axios";
 
 export function register(name:string, passwd:string){
@@ -72,5 +71,45 @@ export function downLoadFile(name:string, filename:string){
             'filename':filename
         },
         responseType:'blob'
+    })
+}
+
+export function previewFile(name:string, filename:string){
+    return request({
+        url:'/preview',
+        method:'post',
+        data:{
+            'name':name,
+            'filename':filename
+        },
+        responseType:'blob'
+    })
+}
+
+export function removeFile(name:string, filename:string){
+    return request({
+        url:'/removefile',
+        method:'get',
+        params:{
+            'name':name,
+            'filename':filename
+        }
+    })
+}
+
+export function upload_headpic(data:FormData){
+    return axios({
+        method:'post',
+        url:'http://127.0.0.1:3000/head_img',
+        data,
+        responseType:'blob'
+    })
+}
+
+export function changeInfo(data:FormData){
+    return axios({
+        method:'post',
+        url:'http://127.0.0.1:3000/changeinfo',
+        data
     })
 }

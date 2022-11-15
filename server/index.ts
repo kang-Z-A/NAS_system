@@ -75,6 +75,7 @@ const login_schema = new mongoose.Schema({
   name: { type: String, default: 'user_default', unique: true },
   password: { type: String },
   filePath: { type: String },
+  headImg: {type:String, default:'/assets/head_portrait.jpg'}
 })
 
 const file_schema = new mongoose.Schema({
@@ -171,7 +172,7 @@ router.get('/userdata', async (ctx: koa.Context) => {
         //token校验成功
         else {
           return setTimeout(async () => {
-            user_model.find({ name: res.name }).select('name filePath').exec((err, res) => {
+            user_model.find({ name: res.name }).select('name filePath headImg').exec((err, res) => {
               ctx.body = {
                 code: 200,
                 userinfo: res[0]
@@ -218,7 +219,7 @@ router.get('/userdata/filelist', async (ctx: koa.Context) => {
   const file_model = db.model(name, file_schema)
   return new Promise((resolve, reject) => {
     setTimeout(() => {
-      file_model.find().exec((err, res) => {
+      file_model.find().sort({ name: 1 }).exec((err, res) => {
         if (err) return handleError(err)
         ctx.body = {
           code: 200,
@@ -230,14 +231,79 @@ router.get('/userdata/filelist', async (ctx: koa.Context) => {
   })
 })
 
+//请求下载,返回文件
 import send from 'koa-send'
 router.post('/download', async (ctx: koa.Context) => {
   const name = ctx.request.body.name
   const filename = ctx.request.body.filename
   const path = `/${name}/${filename}`
   ctx.attachment(path)
-  await send(ctx, path, { root: 'D:/userStorage' })
-  ctx.body = '下载完成'
+
+  return await send(ctx, path, { root: 'D:/userStorage' })
+  // try{
+  //   await send(ctx, path, { root: 'D:/userStorage' })
+  // }catch(err){ctx.throw(404,'文件不存在')}
+})
+
+//预览与音视频在线播放
+router.post('/preview', async (ctx: koa.Context) => {
+  const name = ctx.request.body.name
+  const filename = ctx.request.body.filename
+  const path = `/${name}/${filename}`
+
+  return send(ctx, path, { root: 'D:/userStorage' })
+})
+
+//删除文件
+router.get('/removefile', async (ctx: koa.Context) => {
+  const name = ctx.request.query.name as string
+  const filename = ctx.request.query.filename
+  const file_model = db.model(name, file_schema)
+  return new Promise((resolve, reject) => {
+    setTimeout(() => {
+      fs.unlinkSync(`D:/userStorage/${name}/${filename}`)
+
+      //删除数据库数据
+      file_model.remove({ name: filename }).exec((err, res) => {
+        if (err) return handleError(err)
+        ctx.body = '文件删除成功'
+        resolve(1)
+      })
+    }, 100)
+  })
+})
+
+router.post('/head_img', async (ctx: koa.Context) => {
+  const files = ctx.request.files;	// 获取上传文件
+
+  const reader = fs.createReadStream((files!.file as BodyFile).filepath);	// 创建可读流
+  const ext = (files!.file as BodyFile).originalFilename.split('.').pop();
+  const temp = `${new Date().getTime()}.${ext}`
+  const upStream = fs.createWriteStream(`D:/userStorage/cache/${temp}`);		// 创建可写流
+  reader.pipe(upStream);	// 可读流通过管道写入可写流
+
+  return new Promise((resolve) => {
+    setTimeout(async () => { 
+      await send(ctx,temp,{root:'D:/userStorage/cache/'})
+      resolve(1)
+     }, 100)
+  })
+})
+
+router.post('/changeinfo',async (ctx:koa.Context) => {
+  const body = ctx.request.body
+  // console.log('body: ',body)
+  const {headimg, name, password} = body
+  return new Promise((resolve) => {
+    setTimeout(async() => { 
+      user_model.where({name:name}).update({headImg:headimg, password:password}).exec((err) => { 
+        if(err) console.log(err)
+        ctx.body = 'success'
+        resolve(1)
+      })
+     }, 100)
+  })
+
 })
 
 //校验token，返回对象，包含code和name两个属性
